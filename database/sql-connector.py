@@ -51,8 +51,9 @@ def log_new_user(name, last_name, email, password):
         # 1. The SQL Template
         sql = "INSERT INTO users (first_name, last_name, email, password) VALUES (%s, %s, %s, %s)"
         
-        # will always hash the password before storing 
         # 2. The Data (stored as a tuple)
+        # will always hash the password before storing
+        # will probably make this into a different file called 'cryptorgrapy.py' or something
         val = (name, last_name, email, hashlib.sha256(password.encode('utf-8')).hexdigest())
         
         # 3. Execute combining both
@@ -72,10 +73,17 @@ def log_new_user(name, last_name, email, password):
         mydb.close()
 
 def login(email, password):
-    mydb = connect()
-    mycursor = mydb.cursor()
+    try:
+        mydb = connect()
+        mycursor = mydb.cursor()
+
+
+
+    except mysql.connector.Error as err:
+        print(f'Error: {err}')
+
     
 
-make_database()
-# Example of how you would call it:
+if __name__ == '__main__':
+    print(login())
 
