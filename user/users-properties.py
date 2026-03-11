@@ -11,6 +11,3 @@ class User(BaseModel):
 class UserWithPassword(User):
     # This inherits all fields from User and adds password
     password: str = Field(..., min_length=8)
-
-    def password(self):
-        
