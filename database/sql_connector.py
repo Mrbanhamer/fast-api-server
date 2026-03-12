@@ -54,7 +54,7 @@ def log_new_user(name, last_name, email, password):
         # 2. The Data (stored as a tuple)
         # will always hash the password before storing
         # will probably make this into a different file called 'cryptorgrapy.py' or something
-        val = (name, last_name, email, hashlib.sha256(password.encode('utf-8')).hexdigest())
+        val = (name, last_name, email, password)
         
         # 3. Execute combining both
         mycursor.execute(sql, val)
@@ -72,16 +72,45 @@ def log_new_user(name, last_name, email, password):
         mycursor.close()
         mydb.close()
 
-def login(email, password):
+def login(email, provided_password):
     try:
         mydb = connect()
-        mycursor = mydb.cursor()
+        # dictionary=True allows us to access columns by name
+        mycursor = mydb.cursor(dictionary=True)
 
+        # 1. Extract the hash AND the salt
+        sql = "SELECT password, salt FROM namn WHERE email = %s"
+        mycursor.execute(sql, (email,))
+        
+        user_record = mycursor.fetchone()
 
+        # 2. Check if user exists
+        if user_record is None:
+            print("Login failed: User not found.")
+            return False
+
+        # 3. Use your custom verify_password function
+        # user_record['password'] is the stored_hash
+        # user_record['salt'] is the stored_salt
+        is_valid = verify_password(
+            user_record['password'], 
+            user_record['salt'], 
+            provided_password
+        )
+
+        if is_valid:
+            print("Login Successful!")
+            return True
+        else:
+            print("Login failed: Incorrect password.")
+            return False
 
     except mysql.connector.Error as err:
-        print(f'Error: {err}')
-
+        print(f"Database error: {err}")
+        return False
+    finally:
+        if 'mycursor' in locals(): mycursor.close()
+        if 'mydb' in locals(): mydb.close()
     
 
 if __name__ == '__main__':
