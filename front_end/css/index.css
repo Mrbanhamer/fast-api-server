@@ -1,8 +1,14 @@
 .header {
-    color: green;
+    background-color: rgba(0, 255, 0, 0.75);
+    display: flex;
+    gap: 20px;
+    border-color: black;
+    padding: 20px;
 }
 
 .headerHighlight {
     color: crimson;
+    cursor: pointer;
+    border-color: black;
 }
 
