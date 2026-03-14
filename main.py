@@ -1,16 +1,22 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+
 from routes.users import user
 from utils.hash_password import verify_password
 
 app = FastAPI()
 
+# frontend directions
+app.mount("/front_end", StaticFiles(directory="front_end"), name="front_end")
+
 @app.get('/index', response_class=HTMLResponse)
 async def get_login():
     try:
+        # Using the relative path to your html file
         with open('front_end/index.html', 'r', encoding='utf-8') as f:
             html_content = f.read()
-        return HTMLResponse(content=html_content, status_code=200)
+        return HTMLResponse(content=html_content)
     except FileNotFoundError:
         return HTMLResponse(content="<h1>File not found</h1>", status_code=404)
     
