@@ -1,0 +1,27 @@
+body {
+    margin: 0;
+    padding: 0;
+    background-color: rgba(41, 171, 135, 0.25);
+}
+
+.header {
+    background-color: rgba(245, 245, 220, 1);
+    display: flex;
+    justify-content: center; /* This centers the group of items */
+    padding: 20px;
+    border-bottom: 2px solid black; /* Note: border needs a style and width to show up */
+}
+
+.header-inner-container {
+    display: flex;
+    gap: 40px; /* Space between your items */
+    width: 100%;
+    max-width: 1000px; /* Stops the items from spreading too wide on big monitors */
+    align-items: center;
+}
+
+.headerHighlight {
+    color: crimson;
+    cursor: pointer;
+    margin: 0; /* Remove the auto margin so the 'gap' handles the spacing */
+}
