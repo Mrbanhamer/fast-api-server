@@ -21,6 +21,7 @@ body {
 }
 
 .headerHighlight {
+    display: flex;
     color: crimson;
     cursor: pointer;
     margin: 0; /* Remove the auto margin so the 'gap' handles the spacing */
