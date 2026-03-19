@@ -7,10 +7,9 @@ from utils.hash_password import verify_password
 
 app = FastAPI()
 
-app.mount("/front_end", StaticFiles(directory="src/frontend"), name="front_end")
 
 # frontend directions
-app.mount("/front_end", StaticFiles(directory="front_end"), name="front_end")
+app.mount("/front_end", StaticFiles(directory="src/front_end"), name="front_end")
 
 @app.get('/index', response_class=HTMLResponse)
 async def get_login():
