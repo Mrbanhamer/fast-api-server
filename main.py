@@ -15,7 +15,7 @@ app.mount("/front_end", StaticFiles(directory="src/front_end"), name="front_end"
 async def get_login():
     try:
         # Using the relative path to your html file
-        with open('front_end/index.html', 'r', encoding='utf-8') as f:
+        with open('src/front_end/index.html', 'r', encoding='utf-8') as f:
             html_content = f.read()
         return HTMLResponse(content=html_content)
     except FileNotFoundError:
