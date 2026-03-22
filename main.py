@@ -21,10 +21,16 @@ async def get_login():
     except FileNotFoundError:
         return HTMLResponse(content="<h1>File not found</h1>", status_code=404)
     
+    
 @app.post('/index')
-async def login(stored_hash, stored_salt, provided_password):
-    if verify_password(stored_hash, stored_salt, provided_password):
-        pass
+async def login(data: LoginData):
+    # Here you would usually do your logic. 
+    # For now, we just acknowledge the "profile" click.
+    print(f"User clicked: {data.action}")
+    
+    # We return a success status. React will see this 'ok' 
+    # and perform the redirect on the frontend.
+    return {"status": "success", "message": "Redirecting to profile"}
 
 
 
