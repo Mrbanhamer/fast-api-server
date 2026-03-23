@@ -1,11 +1,13 @@
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, Request, Response
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
+from user.users_properties import User
 from routes.users import user
 from utils.hash_password import verify_password
 
 app = FastAPI()
+
 
 
 # frontend directions
@@ -23,14 +25,15 @@ async def get_login():
     
     
 @app.post('/index')
-async def login(data: LoginData):
+async def login(data: User, response: Response):
     # Here you would usually do your logic. 
     # For now, we just acknowledge the "profile" click.
     print(f"User clicked: {data.action}")
     
     # We return a success status. React will see this 'ok' 
     # and perform the redirect on the frontend.
-    return {"status": "success", "message": "Redirecting to profile"}
+    if data.action == 'profile':
+        return RedirectResponse(url="/user/")
 
 
 
