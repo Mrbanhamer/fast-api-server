@@ -2,17 +2,38 @@
 <html>
 <head>
     <meta charset='utf-8'>
-    <title>Home Page</title>
-    <meta name='viewport' content='width=device-width, initial-scale=1'>
-    <link rel='stylesheet' type='text/css' href='css/index.css'>
-    <script src='javascript/header.js'></script>
+    <title>User Profile</title>
+    
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <link rel='stylesheet' type='text/css' href='/front_end/css/index.css'>
 </head>
 <body>
-    <div id="header-placeholder"></div>
+    <div id="root"></div>
 
-    <div>hello</div>
-    <input type="text">
+    <script type="text/babel" src="/front_end/javascript/Header.jsx"></script>
 
-    <script src='javascript/header.js'></script>
+    <script type="text/babel">
+      function UserPage() {
+        return (
+          <div>
+            <Header /> {/* This is the same component! */}
+            <main style={{padding: '20px'}}>
+                <h2>User Profile Page</h2>
+                <p>Welcome! Your session ticket was verified by FastAPI.</p>
+                
+                {/* Your original content */}
+                <div>hello</div>
+                <input type="text" placeholder="Update your status..." />
+            </main>
+          </div>
+        );
+      }
+
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(<UserPage />);
+    </script>
 </body>
 </html>
