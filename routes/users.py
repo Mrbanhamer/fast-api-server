@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.security import OAuth2PasswordRequestForm
+
 from database.sql_connector import log_new_user
 
 # Import your helper function
@@ -72,9 +73,11 @@ async def get_user_profile(request: Request):
     # CHECK THE TICKET: Is the cookie there?
     ticket = request.cookies.get("session_ticket")
     
-    if not ticket:
-        # No ticket? Send them to login
-        return RedirectResponse(url="/user/login")
+# 2. If it's missing OR if it's not in your database, kick them out
+    # (Replace 'is_ticket_in_db' with your actual database lookup function)
+    if not ticket or not is_ticket_in_db(ticket):
+        # We use '/index' because that's where your login page is
+            return RedirectResponse(url="/user/login")
 
     # Ticket exists! Serve the profile page
     try:
@@ -82,6 +85,7 @@ async def get_user_profile(request: Request):
             return HTMLResponse(content=f.read())
     except FileNotFoundError:
         return HTMLResponse(content="<h1>Profile File Not Found</h1>", status_code=404)
+    
 
 # --- 4. THE LOGOUT (BONUS) ---
 @user.get('/logout')
