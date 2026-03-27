@@ -8,6 +8,7 @@ from database.sql_connector import login as db_login
 
 user = APIRouter(prefix="/user", tags=["Users"])
 
+
 # --- 1. THE SIGN-UP PAGE (GET) ---
 @user.get('/signup', response_class=HTMLResponse)
 async def get_signup_page(request: Request):
@@ -77,7 +78,7 @@ async def get_user_profile(request: Request):
 
     # Ticket exists! Serve the profile page
     try:
-        with open('front_end/user.html', 'r', encoding='utf-8') as f:
+        with open('src/front_end/user.html', 'r', encoding='utf-8') as f:
             return HTMLResponse(content=f.read())
     except FileNotFoundError:
         return HTMLResponse(content="<h1>Profile File Not Found</h1>", status_code=404)
