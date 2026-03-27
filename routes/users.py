@@ -8,6 +8,7 @@ from database.sql_connector import login as db_login
 
 user = APIRouter(prefix="/user", tags=["Users"])
 
+
 # --- 1. THE SIGN-UP PAGE (GET) ---
 @user.get('/signup', response_class=HTMLResponse)
 async def get_signup_page(request: Request):
