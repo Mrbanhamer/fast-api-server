@@ -111,6 +111,39 @@ def login(email, provided_password):
     finally:
         if 'mycursor' in locals(): mycursor.close()
         if 'mydb' in locals(): mydb.close()
+
+def save_ticket(user_id, ticket_id):
+    try:
+        mydb = connect()
+        mycursor = mydb.cursor()
+        sql = "INSERT INTO tickets (ticket_id, user_id) VALUES (%s, %s)"
+        mycursor.execute(sql, (ticket_id, user_id))
+        mydb.commit()
+    except Error as e:
+        print(f"Error saving ticket: {e}")
+    finally:
+        mycursor.close()
+        mydb.close()
+
+def is_ticket_in_db(ticket_id):
+    if not ticket_id:
+        return False
+    try:
+        mydb = connect()
+        mycursor = mydb.cursor()
+        # We just need to see if any row exists with this ticket_id
+        sql = "SELECT user_id FROM tickets WHERE ticket_id = %s"
+        mycursor.execute(sql, (ticket_id,))
+        
+        result = mycursor.fetchone()
+        return result is not None  # Returns True if ticket exists, False otherwise
+    except Error as e:
+        print(f"Error verifying ticket: {e}")
+        return False
+    finally:
+        mycursor.close()
+        mydb.close()
+
     
 
 if __name__ == '__main__':

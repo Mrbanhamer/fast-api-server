@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.security import OAuth2PasswordRequestForm
 
-from database.sql_connector import log_new_user
+from database.sql_connector import log_new_user, is_ticket_in_db
 
 # Import your helper function
 from database.sql_connector import login as db_login
@@ -75,7 +75,7 @@ async def get_user_profile(request: Request):
     
 # 2. If it's missing OR if it's not in your database, kick them out
     # (Replace 'is_ticket_in_db' with your actual database lookup function)
-    if not ticket or not is_ticket_in_db(ticket):
+    if not is_ticket_in_db(ticket):
         # We use '/index' because that's where your login page is
             return RedirectResponse(url="/user/login")
 
