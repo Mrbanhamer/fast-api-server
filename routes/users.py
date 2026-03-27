@@ -40,7 +40,7 @@ async def signup_action(
 @user.get('/login', response_class=HTMLResponse)
 async def get_login_page(request: Request):
     try:
-        with open('front_end/user_login.html', 'r', encoding='utf-8') as f:
+        with open('src/front_end/user_login.html', 'r', encoding='utf-8') as f:
             return HTMLResponse(content=f.read())
     except FileNotFoundError:
         return HTMLResponse(content="<h1>Login File Not Found</h1>", status_code=404)
@@ -77,7 +77,7 @@ async def get_user_profile(request: Request):
 
     # Ticket exists! Serve the profile page
     try:
-        with open('front_end/user.html', 'r', encoding='utf-8') as f:
+        with open('src/front_end/user.html', 'r', encoding='utf-8') as f:
             return HTMLResponse(content=f.read())
     except FileNotFoundError:
         return HTMLResponse(content="<h1>Profile File Not Found</h1>", status_code=404)
