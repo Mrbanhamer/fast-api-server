@@ -144,6 +144,11 @@ def is_ticket_in_db(ticket_id):
         mycursor.close()
         mydb.close()
 
+def verify_password():
+    mydb = connect()
+    mycursor = mydb.cursor()
+    sql = ''
+
     
 
 if __name__ == '__main__':
