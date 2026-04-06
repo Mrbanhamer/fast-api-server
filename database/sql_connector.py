@@ -147,7 +147,7 @@ def is_ticket_in_db(ticket_id):
 def verify_password():
     mydb = connect()
     mycursor = mydb.cursor()
-    sql = ''
+    sql = 'Select'
 
     
 
