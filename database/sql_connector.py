@@ -4,153 +4,108 @@ import os
 from dotenv import load_dotenv
 import hashlib
 
-
 def connect():
     load_dotenv()
-    password = os.getenv("DB_PASSWORD")
-    mydb = mysql.connector.connect(
-        host = 'localhost',
-        user = 'root',
-        password = password,
-        database = 'serverdb'
+    return mysql.connector.connect(
+        host='localhost',
+        user='root',
+        password=os.getenv("DB_PASSWORD"),
+        database='serverdb'
     )
-    return mydb
 
 def make_database():
     try:
         mydb = connect()
-        mycursor = mydb.cursor()
+        cursor = mydb.cursor()
         
-        # Using a multi-line string for clarity
-        sql_query = """
-        CREATE TABLE IF NOT EXISTS users (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            first_name VARCHAR(255),
-            last_name VARCHAR(255),
-            email VARCHAR(255) UNIQUE,
-            password VARCHAR(255)
-        )
-        """
-        
-        mycursor.execute(sql_query)
-        print("Table 'users' verified/created successfully!")
-        
-    except mysql.connector.Error as err:
-        print(f"Something went wrong: {err}")
+        # 1. Users Table (Added salt column)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                first_name VARCHAR(255),
+                last_name VARCHAR(255),
+                email VARCHAR(255) UNIQUE,
+                password VARCHAR(255),
+                salt VARCHAR(255)
+            )
+        """)
 
-    finally:
-        if 'mydb' in locals() and mydb.is_connected():
-            mycursor.close()
-            mydb.close()
+        # 2. Tickets Table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS tickets (
+                ticket_id VARCHAR(255) PRIMARY KEY,
+                user_id INT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        """)
 
-def log_new_user(name, last_name, email, password):
-    try:
-        mydb = connect()
-        mycursor = mydb.cursor()
+        # 3. Tasks Table (The CRUD Resource)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS tasks (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT NOT NULL,
+                title VARCHAR(255) NOT NULL,
+                description TEXT,
+                completed BOOLEAN DEFAULT FALSE,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        """)
         
-        # 1. The SQL Template
-        sql = "INSERT INTO users (first_name, last_name, email, password) VALUES (%s, %s, %s, %s)"
-        
-        # 2. The Data (stored as a tuple)
-        # will always hash the password before storing
-        # will probably make this into a different file called 'cryptorgrapy.py' or something
-        val = (name, last_name, email, password)
-        
-        # 3. Execute combining both
-        mycursor.execute(sql, val)
-        
-        # 4. Save the changes!
         mydb.commit()
-        
-        print(f"User {name} was successfully added with ID: {mycursor.lastrowid}")
-        
-    except mysql.connector.Error as err:
-        print(f"Error: {err}")
-    
+        print("Database and Tables verified successfully!")
+    except Error as err:
+        print(f"Database setup error: {err}")
     finally:
-        # Clean up
-        mycursor.close()
+        cursor.close()
         mydb.close()
+
+# --- AUTH FUNCTIONS ---
+
+def verify_password(stored_hash, stored_salt, provided_password):
+    # Hashes the attempt with the same salt to see if they match
+    hash_obj = hashlib.sha256((provided_password + stored_salt).encode())
+    return hash_obj.hexdigest() == stored_hash
 
 def login(email, provided_password):
     try:
         mydb = connect()
-        # dictionary=True allows us to access columns by name
-        mycursor = mydb.cursor(dictionary=True)
+        cursor = mydb.cursor(dictionary=True)
+        # Check 'users' table (fixed from 'namn')
+        sql = "SELECT id, password, salt FROM users WHERE email = %s"
+        cursor.execute(sql, (email,))
+        user = cursor.fetchone()
 
-        # 1. Extract the hash AND the salt
-        sql = "SELECT password, salt FROM namn WHERE email = %s"
-        mycursor.execute(sql, (email,))
-        
-        user_record = mycursor.fetchone()
-
-        # 2. Check if user exists
-        if user_record is None:
-            print("Login failed: User not found.")
-            return False
-
-        # 3. Use your custom verify_password function
-        # user_record['password'] is the stored_hash
-        # user_record['salt'] is the stored_salt
-        is_valid = verify_password(
-            user_record['password'], 
-            user_record['salt'], 
-            provided_password
-        )
-
-        if is_valid:
-            print("Login Successful!")
-            return True
-        else:
-            print("Login failed: Incorrect password.")
-            return False
-
-    except mysql.connector.Error as err:
-        print(f"Database error: {err}")
+        if user and verify_password(user['password'], user['salt'], provided_password):
+            return user['id'] # Return ID to create ticket
         return False
     finally:
-        if 'mycursor' in locals(): mycursor.close()
-        if 'mydb' in locals(): mydb.close()
+        cursor.close()
+        mydb.close()
+
+# --- SESSION FUNCTIONS ---
 
 def save_ticket(user_id, ticket_id):
     try:
         mydb = connect()
-        mycursor = mydb.cursor()
-        sql = "INSERT INTO tickets (ticket_id, user_id) VALUES (%s, %s)"
-        mycursor.execute(sql, (ticket_id, user_id))
+        cursor = mydb.cursor()
+        cursor.execute("INSERT INTO tickets (ticket_id, user_id) VALUES (%s, %s)", (ticket_id, user_id))
         mydb.commit()
-    except Error as e:
-        print(f"Error saving ticket: {e}")
     finally:
-        mycursor.close()
+        cursor.close()
         mydb.close()
 
-def is_ticket_in_db(ticket_id):
-    if not ticket_id:
-        return False
+def get_user_id_from_ticket(ticket_id):
     try:
         mydb = connect()
-        mycursor = mydb.cursor()
-        # We just need to see if any row exists with this ticket_id
-        sql = "SELECT user_id FROM tickets WHERE ticket_id = %s"
-        mycursor.execute(sql, (ticket_id,))
-        
-        result = mycursor.fetchone()
-        return result is not None  # Returns True if ticket exists, False otherwise
-    except Error as e:
-        print(f"Error verifying ticket: {e}")
-        return False
+        cursor = mydb.cursor()
+        cursor.execute("SELECT user_id FROM tickets WHERE ticket_id = %s", (ticket_id,))
+        result = cursor.fetchone()
+        return result[0] if result else None
     finally:
-        mycursor.close()
+        cursor.close()
         mydb.close()
 
-def verify_password():
-    mydb = connect()
-    mycursor = mydb.cursor()
-    sql = 'Select'
-
-    
-
 if __name__ == '__main__':
-    print(login())
+    print(make_database())
 
