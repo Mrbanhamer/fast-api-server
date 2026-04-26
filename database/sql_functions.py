@@ -1,4 +1,4 @@
-from sql_connector import connect
+from database.sql_connector import connect
 import mysql.connector 
 
 # --- TASK CRUD FUNCTIONS ---

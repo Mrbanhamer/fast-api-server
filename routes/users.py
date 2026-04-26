@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.security import OAuth2PasswordRequestForm
+import uuid
 
-from database.sql_connector import log_new_user, is_ticket_in_db
+from database.sql_connector import log_new_user, is_ticket_in_db, save_ticket, get_user_id_from_email
 
 # Import your helper function
 from database.sql_connector import login as db_login
@@ -27,16 +28,25 @@ async def signup_action(
     email: str = Form(...), 
     password: str = Form(...)
 ):
-    # 1. Call your database function
+    # 1. Create the user
     success = log_new_user(name, last_name, email, password)
     
     if not success:
-        # You could redirect back to signup with an error message here
-        return HTMLResponse(content="<h1>Signup Failed. Try a different email.</h1>", status_code=400)
+        return HTMLResponse(content="<h1>Signup Failed</h1>", status_code=400)
 
-    # 2. SUCCESS: Redirect to login page so they can sign in for the first time
-    # Or redirect to /user/ and set a cookie if you want to log them in immediately
-    return RedirectResponse(url="/user/login", status_code=status.HTTP_303_SEE_OTHER)
+    # 2. To log them in, we need their new ID. 
+    # Let's assume you've added a helper to get ID by email
+    user_id = get_user_id_from_email(email) 
+
+    # 3. Create a session ticket just like in your login route
+    new_ticket = str(uuid.uuid4())
+    save_ticket(user_id, new_ticket)
+
+    # 4. Redirect to the profile ('/user/') instead of login
+    response = RedirectResponse(url="/user/", status_code=status.HTTP_303_SEE_OTHER)
+    response.set_cookie(key="session_ticket", value=new_ticket, httponly=True)
+    
+    return response
 
 # --- 1. THE LOGIN PAGE (GET) ---
 @user.get('/login', response_class=HTMLResponse)
@@ -50,21 +60,33 @@ async def get_login_page(request: Request):
 # --- 2. THE LOGIN ACTION (POST) ---
 @user.post('/login')
 async def login_action(form_data: OAuth2PasswordRequestForm = Depends()):
-    # Use your DB function: form_data.username is the email field
-    user_data = db_login(form_data.username, form_data.password)
+    # 1. Verify user exists and password is correct
+    # This should return the user's ID from the database
+    user_id = db_login(form_data.username, form_data.password)
     
-    if not user_data:
-        # If login fails, stay on login page or show error
+    if not user_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password"
         )
 
-    # SUCCESS: Create redirect to the profile
+    # 2. GENERATE a unique session ticket
+    new_ticket = str(uuid.uuid4())
+    
+    # 3. SAVE that ticket to the 'tickets' table in SQL
+    # This links the ticket string to the user_id
+    save_ticket(user_id, new_ticket)
+
+    # 4. SUCCESS: Redirect to the profile and hand the browser the ticket
     response = RedirectResponse(url="/user/", status_code=status.HTTP_303_SEE_OTHER)
     
-    # Give them the "Ticket" (Cookie)
-    response.set_cookie(key="session_ticket", value=user_data["email"], httponly=True)
+    # We set the cookie to the random UUID, not the email (much more secure!)
+    response.set_cookie(
+        key="session_ticket", 
+        value=new_ticket, 
+        httponly=True,
+        path="/" # Makes sure the cookie works on all routes
+    )
     return response
 
 # --- 3. THE PROTECTED USER PAGE (GET) ---

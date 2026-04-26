@@ -5,10 +5,12 @@ from fastapi.staticfiles import StaticFiles
 from user.users_properties import User, UserWithPassword
 from routes.users import user as user_router # Renamed for clarity
 from utils.hash_password import verify_password
+from routes.tasks import router as task_router
 
 app = FastAPI()
 
 app.include_router(user_router)
+app.include_router(task_router)
 
 # 1. You MUST include your router for /user/ to work!
 app.include_router(user_router, prefix="/user")
