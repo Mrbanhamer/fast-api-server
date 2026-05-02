@@ -1,53 +1,53 @@
+import { useNavigate } from 'react-router-dom'; // If using React Router
+
 function Header() {
     const menuItems = ["profile", "store", "settings", "logout"];
 
-    // 1. Move the function INSIDE the component so it can be used easily
     const handleMenuClick = async (item) => {
-        // We use the 'item' (profile, store, etc.) as the action
-        const userData = {
-            email: "test@example.com", // In a real app, this comes from a state/form
-            name: "John",
-            last_name: "Doe",
-            password: "secretpassword123",
-            age: 25,
-            action: item // Now it sends 'profile' or 'store' depending on what you click
-        };
+        if (item === "logout") {
+            try {
+                // Call the actual logout endpoint we discussed
+                const response = await fetch('http://127.0.0.1:8000/user/logout', {
+                    method: 'POST',
+                    credentials: 'include' // Tells browser to send the cookie to be deleted
+                });
 
-        try {
-            const response = await fetch('/index', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(userData),
-            });
-
-            if (response.ok) {
-                // If backend verified the action, go to the user route
-                window.location.href = '/user/'; 
-            } else {
-                const errorData = await response.json();
-                console.error('Backend Error:', errorData);
+                if (response.ok) {
+                    window.location.href = 'index.html'; // Go back to start
+                }
+            } catch (error) {
+                console.error('Logout failed:', error);
             }
-        } catch (error) {
-            console.error('Network Error:', error);
+            return;
         }
+
+        // For other items, just navigate to the page
+        // Since you have separate HTML files:
+        window.location.href = `${item}.html`;
     };
 
     return (
         <header className="header">
             <div className="header-inner-container">
-                <h1 className="headerlogo">mini project</h1>
+                <h1 className="headerlogo" onClick={() => window.location.href = 'user.html'} style={{cursor:'pointer'}}>
+                    mini project
+                </h1>
                 
-                {menuItems.map((item) => (
-                    <h1 
-                        key={item} 
-                        className="headerHighlight"
-                        onClick={() => handleMenuClick(item)} // 2. Attach the click here
-                        style={{ cursor: 'pointer' }}        // 3. Make it look clickable
-                    >
-                        {item}
-                    </h1>
-                ))}
+                <div className="menu-container" style={{ display: 'flex', gap: '20px' }}>
+                    {menuItems.map((item) => (
+                        <h1 
+                            key={item} 
+                            className="headerHighlight"
+                            onClick={() => handleMenuClick(item)}
+                            style={{ cursor: 'pointer', fontSize: '1.2rem' }}
+                        >
+                            {item}
+                        </h1>
+                    ))}
+                </div>
             </div>
         </header>
     );
 }
+
+export default Header;

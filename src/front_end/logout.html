@@ -1,18 +1,7 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset='utf-8'>
-    <title>Home Page</title>
-    <meta name='viewport' content='width=device-width, initial-scale=1'>
-    <link rel='stylesheet' type='text/css' href='css/index.css'>
-    <script src='javascript/header.js'></script>
-</head>
-<body>
-    <div id="header-placeholder"></div>
-
-    <div>hello</div>
-    <input type="text">
-
-    <script src='javascript/header.js'></script>
-</body>
-</html>
+// Simple script to call logout and redirect
+fetch('http://127.0.0.1:8000/user/logout', { 
+    method: 'POST', 
+    credentials: 'include' 
+}).then(() => {
+    window.location.href = 'index.html';
+});
