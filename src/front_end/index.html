@@ -3,25 +3,28 @@
 <head>
     <meta charset='utf-8'>
     <title>Home Page</title>
+    <!-- React & Babel via CDN (The simple way) -->
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
-    <link rel='stylesheet' href='front_end/css/index.css'>
+    <link rel='stylesheet' href='css/index.css'>
 </head>
 <body>
     <div id="root"></div>
 
-    <script type="text/babel" src="front_end/javascript/Header.jsx"></script>
+    <!-- Load the Header script -->
+    <script type="text/babel" src="javascript/Header.jsx"></script>
 
+    <!-- Main Page Content -->
     <script type="text/babel">
       function App() {
         return (
           <div>
-            <Header />  {/* This pulls in your old header.html code! */}
-            <main>
-              <h2>Welcome to the Body</h2>
-              <p>Everything is now managed by React.</p>
+            <Header /> 
+            <main style={{ textAlign: 'center', marginTop: '50px' }}>
+              <h1>Welcome to the App</h1>
+              <p>Please use the buttons above to Login or Sign up.</p>
             </main>
           </div>
         );

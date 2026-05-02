@@ -15,7 +15,7 @@ user = APIRouter(prefix="/user", tags=["Users"])
 @user.get('/signup', response_class=HTMLResponse)
 async def get_signup_page(request: Request):
     try:
-        with open('front_end/user_signup.html', 'r', encoding='utf-8') as f:
+        with open('src/front_end/signup.html', 'r', encoding='utf-8') as f:
             return HTMLResponse(content=f.read())
     except FileNotFoundError:
         return HTMLResponse(content="<h1>Signup File Not Found</h1>", status_code=404)

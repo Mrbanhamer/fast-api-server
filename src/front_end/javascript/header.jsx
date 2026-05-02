@@ -1,53 +1,41 @@
-import { useNavigate } from 'react-router-dom'; // If using React Router
-
 function Header() {
-    const menuItems = ["profile", "store", "settings", "logout"];
+    // Only these two for now to keep it clean
+    const menuItems = ["login", "signup"];
 
-    const handleMenuClick = async (item) => {
-        if (item === "logout") {
-            try {
-                // Call the actual logout endpoint we discussed
-                const response = await fetch('http://127.0.0.1:8000/user/logout', {
-                    method: 'POST',
-                    credentials: 'include' // Tells browser to send the cookie to be deleted
-                });
-
-                if (response.ok) {
-                    window.location.href = 'index.html'; // Go back to start
-                }
-            } catch (error) {
-                console.error('Logout failed:', error);
-            }
-            return;
-        }
-
-        // For other items, just navigate to the page
-        // Since you have separate HTML files:
-        window.location.href = `${item}.html`;
+    const handleMenuClick = (item) => {
+        // This moves the user to the HTML page so they can see the form
+        window.location.href = `/user/signup`; 
     };
 
     return (
-        <header className="header">
-            <div className="header-inner-container">
-                <h1 className="headerlogo" onClick={() => window.location.href = 'user.html'} style={{cursor:'pointer'}}>
-                    mini project
-                </h1>
-                
-                <div className="menu-container" style={{ display: 'flex', gap: '20px' }}>
-                    {menuItems.map((item) => (
-                        <h1 
-                            key={item} 
-                            className="headerHighlight"
-                            onClick={() => handleMenuClick(item)}
-                            style={{ cursor: 'pointer', fontSize: '1.2rem' }}
-                        >
-                            {item}
-                        </h1>
-                    ))}
-                </div>
-            </div>
+        <header className="header" style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center', 
+            padding: '10px 20px',
+            backgroundColor: '#f4f4f4',
+            borderBottom: '1px solid #ddd'
+        }}>
+            <h1 style={{ margin: 0 }}>Mini Project</h1>
+            <nav>
+                {menuItems.map((item) => (
+                    <button 
+                        key={item} 
+                        onClick={() => handleMenuClick(item)}
+                        style={{ 
+                            marginLeft: '10px',
+                            padding: '8px 15px',
+                            cursor: 'pointer',
+                            textTransform: 'capitalize',
+                            borderRadius: '5px',
+                            border: '1px solid #ccc',
+                            backgroundColor: 'white'
+                        }}
+                    >
+                        {item}
+                    </button>
+                ))}
+            </nav>
         </header>
     );
 }
-
-export default Header;
