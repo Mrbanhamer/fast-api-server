@@ -4,12 +4,22 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 import os
 
-from user.users_properties import User, UserWithPassword
+from user_schemas.users_properties import User, UserWithPassword
 from routes.users import user as user_router # Renamed for clarity
 from utils.hash_password import verify_password
 from routes.tasks import router as task_router
 
 app = FastAPI()
+
+# --- CORS CONFIGURATION ---
+# This allows your React frontend to communicate with your FastAPI backend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, you'd replace "*" with your actual domain
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # 1. Get the absolute path to your front_end folder
 # We use 'os' to make sure it finds the folder regardless of where you start the terminal

@@ -1,39 +1,33 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset='utf-8'>
-    <title>User Profile</title>
-    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile</title>
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-    <link rel='stylesheet' type='text/css' href='/front_end/css/index.css'>
+    <link rel="stylesheet" href="/css/index.css">
 </head>
 <body>
     <div id="root"></div>
 
-    <script type="text/babel" src="/front_end/javascript/Header.jsx"></script>
+    <!-- Load the components we already built -->
+    <script type="text/babel" src="/javascript/Header.jsx"></script>
+    <script type="text/babel" src="/javascript/UserDashboard.jsx"></script>
 
     <script type="text/babel">
-      function UserPage() {
+      function App() {
         return (
           <div>
-            <Header /> {/* This is the same component! */}
-            <main style={{padding: '20px'}}>
-                <h2>User Profile Page</h2>
-                <p>Welcome! Your session ticket was verified by FastAPI.</p>
-                
-                {/* Your original content */}
-                <div>hello</div>
-                <input type="text" placeholder="Update your status..." />
-            </main>
+            <Header />
+            <UserDashboard />
           </div>
         );
       }
 
       const root = ReactDOM.createRoot(document.getElementById('root'));
-      root.render(<UserPage />);
+      root.render(<App />);
     </script>
 </body>
 </html>
