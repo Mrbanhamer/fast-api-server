@@ -24,7 +24,7 @@ app.add_middleware(
 # 1. Get the absolute path to your front_end folder
 # We use 'os' to make sure it finds the folder regardless of where you start the terminal
 script_dir = os.path.dirname(__file__)
-frontend_path = os.path.join(script_dir, "src", "front_end")
+frontend_path = os.path.join(script_dir, "frontend")
 
 # 2. Mount the subfolders so the browser can reach them
 # This links http://127.0.0.1:8000/css to your actual css folder
@@ -40,12 +40,12 @@ app.include_router(task_router)
 app.include_router(user_router, prefix="/user")
 
 # frontend directions
-app.mount("/front_end", StaticFiles(directory="src/front_end"), name="front_end")
+app.mount("/frontend", StaticFiles(directory="src/frontend"), name="frontend")
 
 @app.get('/index', response_class=HTMLResponse)
 async def get_login():
     try:
-        with open('src/front_end/index.html', 'r', encoding='utf-8') as f:
+        with open('src/frontend/index.html', 'r', encoding='utf-8') as f:
             return HTMLResponse(content=f.read())
     except FileNotFoundError:
         return HTMLResponse(content="<h1>File not found</h1>", status_code=404)
