@@ -1,11 +1,11 @@
 from fastapi import FastAPI, Request, Response
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 import os
 import sys
 
-# Updated imports to reflect new backend structure
+# Original Imports
 from user_schemas.task_schemas import User, UserWithPassword
 from routes.users import user as user_router 
 from routes.tasks import router as task_router
@@ -13,7 +13,8 @@ from utils.hash_password import verify_password
 
 app = FastAPI()
 
-# --- CORS CONFIGURATION ---
+# --- 1. CORS CONFIGURATION ---
+# This allows your React frontend to talk to your API without security blocks
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -22,38 +23,31 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 1. Path Setup: Pointing to the root of the project
-# This looks at backend/ and goes up one level to find the project root
+# --- 2. PATH SETUP ---
+base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 script_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(script_dir)
 frontend_path = os.path.join(project_root, "frontend")
 
-# 2. Mounting Static Files
-# We check if directories exist to prevent the server from crashing
-if os.path.exists(os.path.join(frontend_path, "css")):
-    app.mount("/css", StaticFiles(directory=os.path.join(frontend_path, "css")), name="css")
-
-if os.path.exists(os.path.join(frontend_path, "javascript")):
-    app.mount("/javascript", StaticFiles(directory=os.path.join(frontend_path, "javascript")), name="javascript")
-
-# Mount the entire frontend folder as well
-app.mount("/frontend_assets", StaticFiles(directory=frontend_path), name="frontend_assets")
-
-# Include Routers
+# --- 3. INCLUDE ROUTERS (API Logic) ---
 app.include_router(task_router, prefix="/tasks", tags=["tasks"])
-app.include_router(user_router, prefix="/user", tags=["users"])
+app.include_router(user_router, prefix="/user")
 
-@app.get('/index', response_class=HTMLResponse)
-async def get_login():
-    # Use the absolute path to ensure index.html is found
-    index_file = os.path.join(frontend_path, "index.html")
-    try:
-        with open(index_file, 'r', encoding='utf-8') as f:
-            return HTMLResponse(content=f.read())
-    except FileNotFoundError:
-        return HTMLResponse(content=f"<h1>Frontend index.html not found at {index_file}</h1>", status_code=404)
+print(f"--- PROJECT CHECK ---")
+print(f"Base Path: {base_path}")
+print(f"Checking for: {os.path.join(frontend_path, 'login.html')}")
+print(f"Exists? {os.path.exists(os.path.join(frontend_path, 'login.html'))}")
+print(f"---------------------")
 
-@app.post('/index')
+# --- 4. API ENDPOINTS ---
+
+# New endpoint for React to check connection
+@app.get("/api/status")
+async def get_status():
+    return {"status": "online", "message": "Backend is reachable"}
+
+# Your original Login logic, but updated to a cleaner API path
+@app.post('/api/login')
 async def login(data: UserWithPassword, response: Response):
     if data.action == 'profile':
         response.set_cookie(
@@ -62,9 +56,24 @@ async def login(data: UserWithPassword, response: Response):
             path="/",
             httponly=True
         )
-        return {"status": "success", "url": "/user/"}
+        return {"status": "success", "message": "Logged in successfully"}
+    return {"status": "error", "message": "Login failed"}
+
+# --- 5. FRONTEND SERVING (The "Professional" Way) ---
+
+# This handles the home page (index.html)
+@app.get("/")
+async def read_index():
+    index_file = os.path.join(frontend_path, "index.html")
+    if os.path.exists(index_file):
+        return FileResponse(index_file)
+    return HTMLResponse(content="<h1>Frontend index.html not found</h1>", status_code=404)
+
+# This mounts everything inside /frontend so CSS and JS are accessible
+# We use "/static" as a prefix so it's clearly separated from API routes
+if os.path.exists(frontend_path):
+    app.mount("/static", StaticFiles(directory=frontend_path), name="static")
 
 if __name__ == '__main__':
     import uvicorn
-    # Make sure we run the app from the correct location
     uvicorn.run(app, host='127.0.0.1', port=8000, log_level='info')

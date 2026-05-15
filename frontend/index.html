@@ -3,27 +3,48 @@
 <head>
     <meta charset='utf-8'>
     <title>Home Page</title>
-    <!-- React & Babel via CDN (The simple way) -->
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
-    <link rel='stylesheet' href='css/index.css'>
+    <link rel='stylesheet' href='src/frontend/css/index.css'>
 </head>
 <body>
     <div id="root"></div>
 
-    <!-- Load the Header script -->
-    <script type="text/babel" src="javascript/Header.jsx"></script>
+    <script type="text/babel" src="src/frontend/javascript/Header.jsx"></script>
 
-    <!-- Main Page Content -->
     <script type="text/babel">
+      const { useState, useEffect } = React;
+
       function App() {
+        const [message, setMessage] = useState("Connecting to server...");
+
+        useEffect(() => {
+          // Use /api/status instead of /user/
+          fetch("http://127.0.0.1:8000/api/status") 
+            .then(response => {
+              if(response.ok) return response.json();
+              throw new Error('Network response was not ok');
+            })
+            .then(data => {
+              console.log("Success:", data);
+              setMessage("Connected to Backend Successfully!");
+            })
+            .catch(error => {
+              console.error("Error:", error);
+              setMessage("Failed to connect to Backend.");
+            });
+        }, []);
+
         return (
           <div>
             <Header /> 
             <main style={{ textAlign: 'center', marginTop: '50px' }}>
               <h1>Welcome to the App</h1>
+              <p style={{ color: message.includes('Success') ? 'green' : 'red' }}>
+                Status: {message}
+              </p>
               <p>Please use the buttons above to Login or Sign up.</p>
             </main>
           </div>
