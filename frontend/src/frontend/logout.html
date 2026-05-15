@@ -1,7 +1,0 @@
-// Simple script to call logout and redirect
-fetch('http://127.0.0.1:8000/user/logout', { 
-    method: 'POST', 
-    credentials: 'include' 
-}).then(() => {
-    window.location.href = 'index.html';
-});

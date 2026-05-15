@@ -1,11 +1,6 @@
-from fastapi import APIRouter, Request, HTTPException
-from pydantic import BaseModel
-from typing import Optional
-from database import sql_connector as db  # Using the connector we've been fixing
-from fastapi import APIRouter, Request, HTTPException
-from user_schemas.task_schemas import TaskSchema # Import the new schema
-from database import sql_connector as db
 from fastapi import APIRouter, Request, HTTPException, status
+from schemas.task_schemas import TaskSchema
+from database import sql_connector as db
 
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
 

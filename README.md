@@ -1,24 +1,54 @@
-# fast-api-server
-tries putting all my coding skill to the test
-
-start the server with 'uvicorn main:app'
-also has 'fastapi dev main.py'
-
 # Fullstack Task Manager
 # Leonard de Mare
 
-## Starta backend
-1. `cd backend`
-2. `pip install -r requirements.txt`
-3. `python app.py`
+Ett fullstack task manager-projekt med FastAPI backend och React + Vite frontend.
 
-## Starta frontend
-*Frontend is a React CDN application served via FastAPI.*
-1. Navigate to `http://127.0.0.1:8000/user/login`
+---
 
-## Endpoints
-- POST /tasks/ (Create)
-- GET /tasks/ (Read All)
-- GET /tasks/{id} (Read One)
-- PUT /tasks/{id} (Update)
-- DELETE /tasks/{id} (Delete)
+## Tech Stack
+- **Backend:** Python, FastAPI, MySQL
+- **Frontend:** React 18, Vite, React Router v6
+- **Auth:** Cookie-baserade sessions (UUID tickets)
+
+---
+
+## Starta projektet
+
+### Backend
+```bash
+cd backend
+pip install -r requirements.txt
+python main.py
+```
+Servern startar på `http://127.0.0.1:8000`
+
+### Frontend
+```bash
+cd frontend
+npm install
+npm run dev
+```
+Öppna `http://localhost:5173` i webbläsaren.
+
+> Vite proxar automatiskt `/user/*` och `/tasks/*` till backend på port 8000.
+
+---
+
+## API Endpoints
+
+### Användare
+| Metod | URL | Beskrivning |
+|-------|-----|-------------|
+| POST | `/user/login` | Logga in |
+| POST | `/user/signup` | Skapa konto |
+| GET | `/user/me` | Hämta inloggad användare |
+| GET | `/user/logout` | Logga ut |
+
+### Uppgifter (kräver inloggning)
+| Metod | URL | Beskrivning |
+|-------|-----|-------------|
+| POST | `/tasks/` | Skapa uppgift |
+| GET | `/tasks/` | Hämta alla uppgifter |
+| GET | `/tasks/{id}` | Hämta en uppgift |
+| PUT | `/tasks/{id}` | Uppdatera uppgift |
+| DELETE | `/tasks/{id}` | Ta bort uppgift |
