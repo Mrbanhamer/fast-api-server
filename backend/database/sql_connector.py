@@ -129,17 +129,37 @@ def log_new_user(name, last_name, email, password, salt):
         mydb.close()
 
 def is_ticket_in_db(ticket_id):
-    """Checks if the session ticket exists in our tickets table."""
     if not ticket_id:
-        return False
+        return None
     try:
         mydb = connect()
-        cursor = mydb.cursor()
-        cursor.execute("SELECT user_id FROM tickets WHERE ticket_id = %s", (ticket_id,))
+        cursor = mydb.cursor(dictionary=True)
+        
+        # DEBUG PRINTS - Watch your terminal for these!
+        print(f"--- DATABASE DEBUG ---")
+        print(f"Looking for ticket: '{ticket_id}'")
+
+        # Step 1: Check if the ticket even exists by itself
+        cursor.execute("SELECT * FROM tickets WHERE ticket_id = %s", (ticket_id,))
+        ticket_exists = cursor.fetchone()
+        print(f"Ticket found in tickets table? {ticket_exists is not None}")
+
+        # Step 2: Run the full JOIN
+        query = """
+            SELECT u.first_name AS name, u.last_name, u.email 
+            FROM users u
+            JOIN tickets t ON u.id = t.user_id
+            WHERE t.ticket_id = %s
+        """
+        cursor.execute(query, (ticket_id,))
         result = cursor.fetchone()
-        return result is not None
-    except Error:
-        return False
+        print(f"Full User Info found? {result is not None}")
+        print(f"----------------------")
+        
+        return result 
+    except Error as e:
+        print(f"SQL ERROR: {e}")
+        return None
     finally:
         cursor.close()
         mydb.close()
@@ -191,12 +211,13 @@ def create_task(user_id, title, description):
     try:
         mydb = connect()
         cursor = mydb.cursor()
-        sql = "INSERT INTO tasks (user_id, title, description) VALUES (%s, %s, %s)"
-        cursor.execute(sql, (user_id, title, description))
+        cursor.execute(
+            "INSERT INTO tasks (user_id, title, description) VALUES (%s, %s, %s)",
+            (user_id, title, description)
+        )
         mydb.commit()
         return True
-    except Error as e:
-        print(f"Error: {e}")
+    except Error:
         return False
     finally:
         cursor.close()
@@ -205,12 +226,10 @@ def create_task(user_id, title, description):
 def get_all_tasks(user_id):
     try:
         mydb = connect()
-        cursor = mydb.cursor(dictionary=True)
-        sql = "SELECT id, title, description, completed FROM tasks WHERE user_id = %s"
-        cursor.execute(sql, (user_id,))
-        return cursor.fetchall()
-    except Error as e:
-        print(f"Error fetching tasks: {e}")
+        cursor = mydb.cursor(dictionary=True) # Essential for React to get JSON
+        cursor.execute("SELECT * FROM tasks WHERE user_id = %s", (user_id,))
+        return cursor.fetchall() # Returns a list of dicts
+    except Error:
         return []
     finally:
         cursor.close()

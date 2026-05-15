@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request, Form
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Form, Response
 from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
 from fastapi.security import OAuth2PasswordRequestForm
 import uuid
@@ -15,31 +15,25 @@ from database.sql_connector import (
 )
 from user_schemas.user_auth import UserSignup
 
-user = APIRouter(prefix="/user", tags=["Users"])
+user = APIRouter(tags=["Users"])
 
 # This ensures we find the frontend folder regardless of where you start the app
 base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-current_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.dirname(current_dir)
-frontend_path = os.path.join(project_root, "frontend")
-
-print(f"--- PROJECT CHECK ---")
-print(f"Base Path: {base_path}")
-print(f"Checking for: {os.path.join(frontend_path, 'login.html')}")
-print(f"Exists? {os.path.exists(os.path.join(frontend_path, 'login.html'))}")
-print(f"---------------------")
+current_dir = os.path.dirname(os.path.abspath(__file__))      # /backend/routes
+project_root = os.path.dirname(os.path.dirname(current_dir)) # /fast-api-server
+frontend_path = os.path.join(project_root, "frontend", "src", "frontend")
 
 @user.get('/me')
 async def get_my_info(request: Request):
     ticket = request.cookies.get("session_ticket")
+    
+    # Use the NEW function that returns data, not just True/False
     user_data = is_ticket_in_db(ticket) 
+    
     if not user_data:
-        raise HTTPException(status_code=401, detail="Invalid session")
-    return {
-        "name": user_data['name'],
-        "last_name": user_data['last_name'],
-        "email": user_data['email']
-    }
+        raise HTTPException(status_code=401, detail="Invalid session or user not found")
+        
+    return user_data # This now safely returns the dict: {"name": "...", "email": "..."}
 
 # --- SIGN-UP ---
 @user.get('/signup')
@@ -68,31 +62,66 @@ async def get_login_page():
 
 @user.post('/login')
 async def login_action(form_data: OAuth2PasswordRequestForm = Depends()):
+    # 1. Verify the user (This checks the email/password in the DB)
     user_id = db_login(form_data.username, form_data.password)
+    
     if not user_id:
+        # If password is wrong, we stop here.
         raise HTTPException(status_code=401, detail="Incorrect email or password")
 
+    # 2. CREATE THE TICKET (The part you mentioned!)
+    # We generate a unique ID and link it to this specific user_id
     new_ticket = str(uuid.uuid4())
+    
+    # 3. SAVE THE TICKET (This puts it in your 'tickets' table)
     save_ticket(user_id, new_ticket)
 
-    response = RedirectResponse(url="/user/", status_code=status.HTTP_303_SEE_OTHER)
-    response.set_cookie(key="session_ticket", value=new_ticket, httponly=True, path="/")
+    # 4. SEND THE TICKET TO THE BROWSER
+    # We use a cookie so the browser holds onto it for us
+    response = Response(content='{"message": "success"}', media_type="application/json")
+    response.set_cookie(
+        key="session_ticket", 
+        value=new_ticket, 
+        httponly=True, 
+        path="/", 
+        samesite="lax"
+    )
+    
     return response
 
 # --- PROTECTED PROFILE ---
 @user.get('/')
 async def get_user_profile(request: Request):
     ticket = request.cookies.get("session_ticket")
+    
+    # These will show up in your terminal (VS Code/Git Bash)
+    print(f"--- COOKIE CHECK ---")
+    print(f"Browser sent ticket: {ticket}")
+    
     if not is_ticket_in_db(ticket):
+        print("Result: Ticket invalid or missing. Redirecting to login.")
         return RedirectResponse(url="/user/login")
 
+    print("Result: Ticket valid! Sending user.html")
     return FileResponse(os.path.join(frontend_path, "user.html"))
 
 @user.get('/logout')
 async def logout(request: Request):
     ticket = request.cookies.get("session_ticket")
+    
+    # 1. Delete from Database so the ticket is "killed"
     if ticket:
         delete_ticket_from_db(ticket) 
-    response = RedirectResponse(url="/user/login")
-    response.delete_cookie("session_ticket")
+    
+    # 2. Prepare the redirect back to login
+    response = RedirectResponse(url="/user/login", status_code=303)
+    
+    # 3. Tell the browser to delete the cookie
+    response.delete_cookie("session_ticket", path="/") 
+    
     return response
+
+@user.get('/profile')
+async def catch_profile_redirect():
+    # If the frontend tries to go to /profile, send it to /
+    return RedirectResponse(url="/user/")

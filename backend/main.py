@@ -25,21 +25,13 @@ app.add_middleware(
 
 # --- 2. PATH SETUP ---
 base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-script_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.dirname(script_dir)
-frontend_path = os.path.join(project_root, "frontend")
+script_dir = os.path.dirname(os.path.abspath(__file__)) # /backend
+project_root = os.path.dirname(script_dir)             # /fast-api-server
+frontend_path = os.path.join(project_root, "frontend", "src", "frontend")
 
 # --- 3. INCLUDE ROUTERS (API Logic) ---
-app.include_router(task_router, prefix="/tasks", tags=["tasks"])
-app.include_router(user_router, prefix="/user")
-
-print(f"--- PROJECT CHECK ---")
-print(f"Base Path: {base_path}")
-print(f"Checking for: {os.path.join(frontend_path, 'login.html')}")
-print(f"Exists? {os.path.exists(os.path.join(frontend_path, 'login.html'))}")
-print(f"---------------------")
-
-# --- 4. API ENDPOINTS ---
+app.include_router(task_router)
+app.include_router(user_router, prefix="/user", tags=["users"])
 
 # New endpoint for React to check connection
 @app.get("/api/status")

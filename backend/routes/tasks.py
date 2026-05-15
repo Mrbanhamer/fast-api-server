@@ -28,10 +28,16 @@ async def create_task(request: Request, task: TaskSchema):
 @router.get("/")
 async def read_all(request: Request):
     ticket = request.cookies.get("session_ticket")
+    
+    # 1. Check if cookie exists
+    if ticket is None:
+        raise HTTPException(status_code=401, detail="No session cookie found")
+
     user_id = db.get_user_id_from_ticket(ticket)
     
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Unauthorized")
+    # 2. Check if ticket is actually valid in the DB
+    if user_id is None:
+        raise HTTPException(status_code=401, detail="Invalid session")
     
     return db.get_all_tasks(user_id)
 
